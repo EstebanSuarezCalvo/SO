@@ -417,3 +417,57 @@ If a process needs to know how a child process has terminated, it can use one of
 - Creation of *zombie* processes can be avoided using flag SA_NOCLDWAIT in *sigaction* for the SIGCHLD signal
 
 - Should that be the case `wait()`would return -1 setting errno to ECHILD
+
+## CPU Scheduling
+
+In a multiprogrammed O.S. several processes and/or threads compete for CPU.
+
+The scheduler is the part of the O.S. which decides which process (among the runnable processes) obtains the CPU.
+
+There are two kinds of scheduling algorithms:
+- **non-preemptive algorithms**: The currently running process stays in the CPU until it ends its CPU burst
+- **preemptive algorithms**: The scheduler can move out from the CPU the currently running process before it ends its CPU burst (preemption)
+
+Types of scheduler:
+- **short term scheduler**: decides which process enters the CPU among the runnable processes
+- **medium term scheduler**: in *swapping* systems: decides which swapped out processes will be swapped in
+- **long term scheduler**: in *batch systems*: decides which process(es) in the *spool* device will be loaded into main memory. It controls the degree of multiprogramming
+
+The goals of a scheduler will vary depending on the environment it is used:
+- **Batch environments**: It's main goal is to be efficient and have great throughput
+- **Interactive environments**: Its main goal is to give at least some CPU to all processes in a timely manner
+- **Real time environments**: Some processes in the system have very specific time constrains that need to be met. Typically priority based scheduling is used and those processes with special needs are assigned the greatest priorities in the system
+
+In every system the sheduler has to provide
+- **Fairness**: every process has to get a fair share of the CPU
+- **Policy**: meet a certain criteria previously stablished
+- **Balance**: different parts of the system share similar workloads
+
+### Scheduling Evaluation
+
+There are 3 methods to evaluate how an algorithm behaves on a given system
+
+- Analytical methods (both deterministic and non deterministic)
+
+    - Deterministic Models
+        - We take a sample workload and evaluate how the system behaves. Important: the workload must be representative
+        - We use some of the time measurements to assess the algorithm's performance
+        - *Pros*: simplicity
+        - *Cons*: misleading results if the workload is not correctly selected
+
+    - Non deterministic Models
+        - On many systems, the arrival time and length of the job cannot be predicted, so it is not possible to use a deterministic mode
+        - We use probability distribution functions to model the CPU bursts and arrival times for the jobs in the system
+        - With those two distributions we can estimate the mean values of throughput, watting time...
+
+- Simulation
+    - Another option is to simulate the system behaviour
+    - Data for processes are either ramdomly generated or sampled from a real system
+    - This method gives a real glimpse on how an scheduling algorithm actually performs
+    - High computing cost
+
+- Implantation
+
+    - The algorithm is implemented on a running system to be evaluated
+    - Data obtained correspondt o actual processes in a real system
+    - The mere implantation of some specific algorithm in a running system can condition user behaviour so that the results thus obtained may be not as *authentic* as they should

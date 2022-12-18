@@ -1,0 +1,117 @@
+Ejercicio 1 TGR
+    
+                    A       B       C       D
+    
+                    0   10  20  30  40  50  60  70  80  90  100 110 120 130 140 150 160 170 180 190 200
+    
+    FCFS (FIFO)     A   A   A   A   A   B   B   C   C   C   C   C   C   C   C   C   C   C   D   D   D
+    
+    SJF (MÁS CORTO) A   A   A   A   A   B   B   D   D   D   D   C   C   C   C   C   C   C   C   C   C
+    
+    SRTF(SIEMPRE    A   A   B   B   B   A   A   D   D   D   D   C   C   C   C   C   C   C   C   C   C
+    EL MÁS CORTO, 
+    SIFT 
+    APROPIATIVO)
+
+    PRIO (NO APR.)  A   A   A   A   A   B   B   D   D   D   D   C   C   C   C   C   C   C   C   C   C
+    
+    PRIO (APR.)     A   A   B   B   C   C   D   D   D   D   C   C   C   C   C   C   C   C   A   A   A
+
+    R.R. (R = 30)   A   A   A   B   B   A   A   C   C   C   D   D   D   C   C   C   D   C   C   C   C
+
+
+    T.E. FCS = (0 + 30 + 30 + 110) / 4 = 42.5 ms
+    T.E. SJF = (0 + 30 + 70 + 10) / 4 = 27.5 ms
+    T.E. SRTF = (20 + 0 + 70 + 10) / 4 = 25 ms
+    T.E. PRI. NO APR. = igual que SRTF
+    T.E. PRI. APR. = (160 + 0 + 40 + 0) / 4 = 50 ms
+    T.E. R.R. = (20 + 10 + 70 + 70) / 4 = 42.5 ms
+
+
+
+Ejercicio 2 TGR
+    Ninguno, no hay ninguna llamada a fork(). La ejecución de este programa es infinita, porque se hacen llamadas infinitas a execv(), ya que al volver a ejecutar el programa, no se guardan los valores de las variables, por lo que i = 0 siempre.
+
+
+
+Ejercicio 3 TGR
+    Se crean infinitos procesos. Imprime por pantalla "i vale 1" de forma infinita.
+
+
+
+Ejercicio 1 Junio 2019
+    fork() * fork()
+     |
+     |--> original => PID = N1 * N2
+     |     |
+     |     |--> N2 => PID = N1 * 0
+     |
+     |--> N1 => PID = 0 * N3
+           |
+           |--> N3 => PID = 0 * 0
+
+    fork devuelve la diferencia entre el original y el nuevo
+
+    pid = fork() * fork;
+    equivalente a:
+    int pid1 = fork();
+    int pid2 = fork();
+    pid = pid1 * pid2;
+
+    al proceso original se le devuelve el pid del proceso original
+    al proceso nuevo se le devuelve un 0
+    el nuevo no necesita que le devolvamos su propio pid ya que lo puede obtener con una llamada a getpid, pero sí que se le devuelve al original, ya que si no no tiene forma alguna de conocer el pid del nuevo
+    
+    int pid1 = fork();
+    int pid2 = fork();
+    pid = pid1 * pid2;
+
+    ORIG |  pid1 = N1       N2   |  pid1 = N1
+         |  pid2 = N2            |  pid2 = 0
+
+    N1   |  pid1 = 0        N3   |  pid1 = 0
+         |  pid2 = N3            |  pid2 = 0
+
+
+Ejercicio 4 TGR
+
+        |   P1  P2      P3
+        |   0   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18
+    CPU |   P1  P2  P1  P3  P2  P3  P2  P2  P2  P3  P3  P1  --  P3  --  --  P1  P1  P1
+    ----|------------------------------------------------------------------------------
+    I/O |           P2  P2                              P3  P3
+        |                                                   P1  P1  P1  P1
+    ----|------------------------------------------------------------------------------
+    P1  |   2                                           3
+    P2  |       4   5       4   3       3(termina)
+    P3  |               3                           4(termina)
+
+
+
+Ejercicio 5 TGR
+    a)
+        - Al haber C entre las B sabemos que es un algoritmo apropiativo. 
+        - Como se ejecuta B antes que C (siendo B más largo que C), por lo que descartamos SRTF
+        - Solución: R.R.
+        Tret = (3 + 9 + 6 + 6) / 4 = 6
+    b)
+        SRTF
+        A   A   A   C   C   B   B   B   B   B   D   D   D   D   D   D
+        Te = (0 + 4 + 0 + 0) / 4 = 1
+
+Ejercicio 7 TGR
+
+    int main(int argc, char *argv[]) {
+        int pid;
+
+        if (fork() == 0) {
+            execlp("ls", "ls", argv[1], NULL);
+            exit(0);
+        }
+        
+        sleep(10); // dormir el proceso durante 10 segundos
+
+        kill(pid, SIGTERM);
+
+        return 0;
+    }
