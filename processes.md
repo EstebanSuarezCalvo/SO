@@ -471,3 +471,86 @@ There are 3 methods to evaluate how an algorithm behaves on a given system
     - The algorithm is implemented on a running system to be evaluated
     - Data obtained correspondt o actual processes in a real system
     - The mere implantation of some specific algorithm in a running system can condition user behaviour so that the results thus obtained may be not as *authentic* as they should
+
+### Scheduling algorithms
+
+#### Non preemptive algorithms
+
+##### Non preemptive: priorities
+
+*Priority is a numeric value used to decide whether a process gets to use CPU before other processes.*
+
+Depending on how they are asigned, priorities can be:
+- **Internal**: Assigned by the O.S. from information on the process
+- **External**: Assigned by the users or the System Administration
+- **Mixed**: Combination of internal and external
+
+Priorities can also be considered:
+- **Static**: the priority of a process does not change (unless the system administrator or some user explicitly changes it)
+- **Dynamic**: the system recalculates the processes' priorities
+
+In non preentive priority scheduling, when the process in CPU voluntarily relenquishes CPU, the scheduler selects the highest priority process among all ready to run processes.
+
+The main drawback is that a process with low priority waits forever. This problem is usually solved with dynamic priorities.
+
+##### First-Come-First-Served (FCFS)
+
+Pros:
+- Easy to Implement. A FIFO queue is enough
+- Fair
+
+Cons:
+- Drawback: risk of low throughput; "convoy" effect
+
+##### Shortest Job First (SJF)
+
+- Only theoretical usage, it needs to know beforehand the length of the CPU burts.
+
+- Produces the shortest turnaround times with various processes arriving simoultaneously
+
+- When two CPU bursts are the same lenght FCFS is used
+
+- This algorithm produces the **best possible** results (unless the processes appear at different times)
+
+#### Preemptive algorithms
+
+##### Preemptive: priorities
+
+- When a process with higher priority than the one in CPU becomes ready, it takes the CPU from the one using it, which goes into the *preempted state (ready to run)*.
+
+##### Shortest Remaining Time First (SRTF)
+
+- It is the preemptive implementation of SJF
+
+- Every time new jobs appear ready, their CPU bursts are compared with the remaining time of the one in CPU
+
+- If one of the new jobs has a CPU burts shorter than the remaining time of the one in CPU, the new job gets the CPU
+
+##### Round-Robin (RR)
+
+- Each process has a time limit in its CPU time called quantum (q)
+
+- Ready to run processes are organiced in a FIFO queue
+
+- If A is executing and reaches the quantum, then a context switch occurs
+
+- The first process in the ready to run queue gets the CPU and A enters the queue
+
+- A timer takes care of waking up the scheduler
+
+Advantages:
+- Easy to implement
+- Fairness
+
+Drawback:
+- Finding the right *q* value
+
+##### Multilevel Queues
+
+A multilevel queue is an evolution from the priority scheduling.
+
+We have one queue for each priority level. Each queue can have its own scheduling algoritm
+
+### Real time scheduling
+
+
