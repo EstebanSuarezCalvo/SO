@@ -553,4 +553,220 @@ We have one queue for each priority level. Each queue can have its own schedulin
 
 ### Real time scheduling
 
+On real time systems, time is of critical importance, so the scheduler must organize the processes so the time limits are met
+
+- Hard real time: all time limits MUST be met
+
+- Soft real time: missing one hit, although not desirable, is tolerable
+
+A program is usually divided into short and predictable bursts whose duration is known in advance.
+
+On a real system we distiguish between two kinds of events, periodical and not periodical
+
+___
+
+**Schedudable real time system**: we define a real time system with m streams to me shedulable if it satisfies $$\sum_{i=1}^{m} C~i~ / P~i~$$
+
+P~i~ = period at which the event occurs
+
+C~i~ = CPU time needed to process the event
+
+___
+
+
+### Thread Sheculing
+
+**A threat can be defined as the basic unit of CPU usage.**
+
+Every process has at least one thread. If it has more than one thread it can perform several tasks concurrently.
+
+The threads inside a process share: code segment, data segment, resources...
+
+For each thread: identifier, program counter, registers, stack.
+
+Advantages:
+
+- Higher response capability: if one thread blocks, other threads can continue to execute
+
+- There may be several threads sharing the same resources
+
+- Less expensive than creating processes. Context switch is also lighter
+
+- Can take advantage of multiprocessor architectures
+
+We can think of scheduling at two levels: processes and threads. A process scheduler chooses a process, then a thread scheduler chooses the thread.
+
+There is no preemption among threads. If a thread uses up all thre *quantum* another process is selected. When it returns to CPU the same thread will continue.
+
+If the thread does not use all the *quantum*, the thread scheduler can select another thread inside the same process.
+
+### Multiprocessor Scheduling
+
+Scheduling gets more complicated when we have several processors. Assigning different sized jobs to several processors in an optimal way is a combinatory problem.
+
+**Assymetric Multiprocessing**: One processor is in charge, the others just execute the processes they are assigned.
+
+**Symmetric Multiprocessing**: Each processor has its own scheduling. Sometimes they share the ready to run queue, in this case extra care must be taken that one process doesn't end up in more than one processor.
+
+If thread A has been executing longer in CPU1, its cache will be filled with data from A. We call this **affinity**.
+
+## Unix process scheduling
+
+### Traditional scheduling
+
+Preemptive priorities recalculated dynamically:
+
+- Always is run the process with the highest priority
+
+- Smaller numbers indicate greater priorities
+
+- Priority of a process decreases as the process uses CPU
+
+- Priority of a process increases as it spends time in the ready to run queue
+
+- When a process with higher priority than the one in CPU appears ready, it preempts the one in CPU (which goes into the ready to run state), unless the one in CPU is running in kernel mode, in which case it will be preempted when it returns to user mode
+
+Processes of the same priority share the CPU in *round robin*.
+
+User mode priority is recalculated attending to:
+
+- *nice* factor: controlled by the `nice()` system call
+
+- CPU usage: higher CPU usage (recent) means lower priority
+
+The *proc* structure has the following members related to priority recalculation:
+
+- *p_cpu*: cpu usage for the purpose of priority recalculation
+
+- *p_nice*: *nice*
+
+- *p_usrpri*: user mode priority, recalculated periodically from CPU usage and nice factor *nice*
+
+- *p_pri*: process priority, this is the one used for scheduling
+
+When the process runs in user mode  *p_pri* is identical to *p_usrpri*.
+
+After a process was blocked, when it is awaken, *p_pri* is assigned a value depending on the reason the process was blocked. THis is called a **kernel priority** or **sleep priority**:
+
+- This *kernel priorities* are smaller numbers thus higher priority than user mode priorities *p_usrpri*
+
+- The goal is to make processes complete the system calls faster
+
+#### Recalculation of user mode priorities
+
+Every clock *tic*, the *handler* increments the *p_cpu* of the currently running process
+
+Every second, the *p_cpu* is adjusted and the user *mode priorities* are recalculated so that the user mode priorities are lower than the kernel ones.
+
+#### Traditional unix scheduling: Implementation
+
+- Is implemented as an array of multilevel queues (normally 32 queues)
+
+- After calculating its priority, a process is moved to the apropiate queue
+
+- `swtch()` just loads the first process of the first non empty queue
+
+- Each 100ms the `roundrobin()` routine changes to the next process in the same queue
+
+### System V R4 scheduling
+
+- It includes real time application
+
+- It separates scheduling policy from implementation mechanisms
+
+- New scheduling policies can be implemented
+
+- It limits applications latency
+
+- Priorities can be "inherited" to avoid *priority inversion*
+
+Some *Scheduling classes* are defined and they determine the policies applied to the processes belonging to them.
+
+#### System V R4 scheduling: main characteristics
+
+- Priorities range from 0 to 159: the higher number the higher the priority:
+
+    - 0-59: *time sharing class*
+
+    - 60:69: *system priority*
+
+    - 100-159: *real time*
+
+- In the *proc* structure:
+
+    - *p_cid* class identifier
+
+    - *_clfuncs* pointer to class functions
+
+    - *p_clproc* pointer to class independent data
+
+- It is implemented as an array of multilevel queues.
+
+#### System V R4 scheduling: predifined classes
+
+##### *Time sharing* class
+
+- User mode priorities are recalculated dynamically
+
+- When a process blocks it is assigned a *sleep priority* depending on the reason it blocked. When it returns, its user mode priority is used
+
+- Quantum depends on priority: higher priority -> shorter quantum
+
+- ONLY the process leaving the CPU gets its priority recalculated
+
+    - **used up all of its quantum**: its user mode priority gets lower
+
+    - **blocked before using all of its quantum**: its priority raises
+
+##### *Real time* class
+
+- Priorities can only be changedd with the `priocntl()` system call
+
+- Fixed priorities. Kernel maintains a table with the corresponding time quantums for each priority
+
+- The higher the priority, the shorter the default quantum
+
+- After using its quantum, the process returns to the same queue (at the end)
+
+##### *System* class
+
+- Used for special system processes
+
+- Fixed priorities
+
+### Linux scheduling
+
+Linux distinguishes between 2 types of processes:
+
+- **Real time processes**: Fixed static priority between 1 and 99. Its priority doesn't change and the higher priority runnable process gets the CPU
+
+- **Normal processes**: correspond to a static priority of 0. They are executed if no real time process is ready to run. For them a preemptive dynamic priority algorithm is used. The system recalculates their priorities and quantums according to the values specified by *nice* and/or *setpriority*
+
+CPU scheduling is done for time intervals called *epochs*. For each *epoch* every processes has its time *slice* depending on its priority.
+
+The system has a *runqueue* for each processor and each process can only be in one *runqueue* at a time.
+
+Each *runqueue* has 2 structures: the *active array* and the *expired array*. Each array has a process queue for each priority level
+
+When a process uses up all of its *slice*, its *slice* gets recalculated and the process is moved to the *expired array*. When all processes have used up all their *slices* the *expired array* becomes *active array*
+
+An array of bits indicates the non empty queues
+
+### System calls for priority management
+
+#### `nice()`
+
+Changes the *niceness* of the calling process. For traditional unix systems that is the *p_nice* factor.
+
+It takes the nice increment as its argument.
+
+It returns the *niceness* minus 20. *niceness* is a number between 0 and 40.
+
+#### `setpriority()` and `getpriority()`
+
+They change the same scheduling parameters as the `nice()` system call.
+
+Better interface to priority than `nice()`, as a process, with the right credentials, can check and/or modify other processes' priorities
+
+## Unix Processes: Executing in kernel mode
 
