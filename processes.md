@@ -12,16 +12,18 @@ A process consists of:
 - Adress space: the set of adresses the process may reference
 - Control point: next instruction to be executed
 
+[Process management (Processes and Threads)](https://www.youtube.com/watch?v=OrM7nZcxXZU&list=PLBlnK6fEyqRgKl0MbI6kbI5ffNt7BF8Fn&index=2&ab_channel=NesoAcademy)
+
 ### Regions
 
 In its simplest form, a process adress space has three regions
-- **Code:** code of all functions in the program that the process is running.
-- **Data:** global variables of the program. Dynamically assigned memory (heap) is usually a part ofthis region.
-- **Stack:** Used for parameter pssing and to store the return address once a function is called. It is also used by the function being called to store its local variables.
+- **Code:** code of all functions in the program that the process is running
+- **Data:** global variables of the program. Dynamically assigned memory (heap) is usually a part of this region
+- **Stack:** Used for parameter passing and to store the return address once a function is called. It is also used by the function being called to store its local variables.
 
 ### Multitasking
 
-When a system executes more than a process at the same time, they seem to be executing at the simoultaneously. Actually, the CPU keeps changing between them, so at any given instant **only one of them** is actually executing.
+When a system executes more than a process at the same time, they seem to be executing simoultaneously. Actually, the CPU keeps changing between them, so at any given instant **only one of them** is actually executing.
 
 One CPU can only be executing one process at a time. Several CPUs are needed in order to have real parallel execution.
 
@@ -42,7 +44,7 @@ Operating systems need more than a running mode to operate:
 - **Kernel mode:** kernel runs in this mode
     - **System call:** A user process explicity requests some service from the kernel via the system call interface
     - **Exceptions:** Exectional situations (division by 0, addressing errors...) cause hardware traps that require kernel intervention
-    - **Interrupts:** Devices use interrupts to notify the kernel of certain events (i/o completion, change of the state of a device...
+    - **Interrupts:** Devices use interrupts to notify the kernel of certain events (i/o completion, change of the state of a device...)
 
 Some processes or instructions can only be executed in kernel mode.
 
@@ -86,7 +88,7 @@ Modern approach (preemptible kernel)
 - A process running in kernel mode can be preempted if a higher priority process apears ready
 - All kernel data structures must be protected by more sophisticated means (like semaphores)
 
-More complex mechanisms are needed in miltiprocessor systems
+More complex mechanisms are needed in miltiprocessor systems.
 
 ## Data structures
 
@@ -100,13 +102,6 @@ In order to manage processes, the O.S. needs:
 
 **A *System Control Block (SCB)* is a set of data structures used by the O.S. to control the execution of processes by the system.**
 
-It usually incluces:
-- List of all Process Descriptors
-- Pointer to the process currently in CPU (its Process Descriptor)
-- Pointer to lists of processes in different states: lists of runnable processes, list of i/o  blocked processes...
-- Pointer to a list of resource descriptors
-- References to the hardware and software interrupt routines and to the error handling routines.
-
 ### Process Control Block
 
 **A *Process Control Block (PCB)* is a data structure used by the O.S. to store all the information about a process.**
@@ -116,21 +111,10 @@ It usually incluces:
 - The Process Control Block keeps the data relevant to one process that the O.S. uses to manage it (PCB)
 
 It usually includes:
-- Identification:
-    - Process identifier
-    - Parent process identifier
-    - User and group identifiers
-- Scheduling:
-    - State of the process
-    - If the process is blocked, event the process is waiting for
-    - Scheduling parameters: process priority and other information relevant to the scheduling algorithm
-- References to the asigned memory regions:
-    - Data region
-    - Code region
-    - Stack region
-- Assigned resources:
-    - Open files: file descriptor table
-    - Assigned communication ports
+- Identification
+- Scheduling
+- References to the asigned memory regions
+- Assigned resources
 - Inter-process comunication information
 
 [Process Control Block](https://www.youtube.com/watch?v=4s2MKuVYKV8&ab_channel=NesoAcademy)
@@ -140,16 +124,24 @@ It usually includes:
 To implement the concept of a process, unix uses concepts and structures that allow a program to execute.
 
 - **User Adress Space:** Code, data, stack, shared memroy regions, mapped files...
-- **Control Information:** 
-    - *proc* structure
-    - *u_area*
-    - kernel stack
-    - address translation maps
-- **Credentials:** indicate which user is behind the execution of that process
-- **Environment variables:** an alternate method to pass information to the process
-- **Hardware context:** the contents of the hardware registers (PC, PSW, ...). When a context switch happens these are stored in a part of the *u_area* called PCB (Process Control Block)
 
-Some ot these entities, although conceptually different share implementation: for example, the *kernel stack* of a process is usually implemented as a part of the *u_area*, and the credentials go in the *proc* structure.
+- **Control Information:** 
+    
+    - *proc* structure
+    
+    - *u_area*
+    
+    - kernel stack
+    
+    - address translation maps
+
+- **Credentials:** indicate which user is behind the execution of that process
+
+- **Environment variables:** an alternate method to pass information to the process
+
+- **Hardware context:** the contents of the hardware registers (PC, PSW, ...)
+
+Some of these entities, although conceptually different share implementation: for example, the *kernel stack* of a process is usually implemented as a part of the *u_area*, and the credentials go in the *proc* structure.
 
 In linux, instead of the *u_area* and the *proc* structure, there exists the *task_struct* structure.
 
@@ -167,7 +159,7 @@ The kernel keeps an array of *proc* structures called *process table*. It is in 
 
 ### Credentials
 
-Credentials of a process allow the system to determine what privileges a proess has relating to fiels and to other process in the system
+Credentials of a process allow the system to determine what privileges a process has relating to fields and to other process in the system
 - Each user in the system is identified by a number: *user id* or *uid*
 - Each group in the system is identified by a number: *group id* or *gid*
 - There is a special user in the system: *root (uid=0)*
@@ -188,19 +180,12 @@ A process has its **credentials**, which specify what files it can acces (and ho
     - If the process gid matches the file gid: group permissions apply
     - Otherwise *rest of the world permissions apply
 
-A process has actually three pairs of credentials:
-- **Effective:** rule access to files
-- **Real and effective:** rule sending and receiving signals (a signal is received if the real or effective *uid* of the sending process matches the real *uid* of the receiving process)
-- **Real and saved:** rule what changes to the effective credential can be done via *setuid* and *setgid* system calls
-
 #### Change of credentials
 
 There are only **three** system calls able to change a process credentials:
 - `setuid()` changes the *uid* of the calling process
-    - The only changes allowed are *effective := real* and *effective := saved*
-    - If the process has the efective credential of *root*, `setuid()` changes the three credentials
 - `setgid()` changes the *gid* of the calling process
-- `exec()` the *exec* system calls (*execl, execv, execlp, execve...*) can change the credentials of the calling process if the file to be executed has the adecuate permissions
+- `exec()` the *exec* system calls can change the credentials of the calling process if the file to be executed has the adecuate permissions
 
 ### Environment variables
 
@@ -236,16 +221,18 @@ On modern systems, some part of the secondary memory is used to swap out PIECES 
 - blocked / asleep / waiting
 - swapped out / suspended (a proccess in this state can either be runnable or blocked)
 
+[Process State](https://www.youtube.com/watch?v=jZ_6PXoaoxo&t=3s&ab_channel=NesoAcademy)
+
 ### State transitions
 - Entering the running state: the first in the ready to run queue is scheduled to run
 - Entering the ready to run state:
     - **A new process has been created and it enters the runnable queue**
     - **From CPU:** another process is scheduled to run via a context switch. We say the process has been preempted
-    - **From blocked:** the event the process was waiting for (some i/o operation or whatever) has ocurred. We call this transition *unblock* or *wake up*.
-    - **From ready to run:** the O.S. decides to bring it to primary memory. This transition is called swap in.
+    - **From blocked:** the event the process was waiting for (some i/o operation or whatever) has ocurred. We call this transition *unblock* or *wake up*
+    - **From ready to run:** the O.S. decides to bring it to primary memory. This transition is called swap in
 
 - Entering the blocked state:
-    - **From CPU:** the process makes some system call (for example asks for some i/o to be done) that cannot be complete at the time so it blocks
+    - **From CPU:** the process makes some system call (asks for some i/o to be done, ...) that cannot be completed at the time so it blocks
     - **From blocked:** the O.S. swaps in a blocked process (not every O.S. accepts this transition)
 
 - The *blocked* and *ready* states can be entered when the O.S. decides to swap out a process (ready or blocked) to free some primary memory
@@ -289,7 +276,7 @@ When a process ends its children processes are inherited by *init*.
 ### The states of a process
 
 The process states in System V are:
-- **idle:** the process is bein created but it is not yet ready to run
+- **idle:** the process is being created but it is not yet ready to run
 - **Runnable / ready to run**
 - **Blocked / asleep:** in this state, as with the *runnable* state, the process can be in main memory or in the swap area (*swapped*)
 - **User running**
@@ -303,11 +290,11 @@ Notice:
 - Execution ends in kernel mode
 - When a process ends it goes into *zombie* state until its parent process performs one of the *wait* system calls on it
 
-## `fork()`
+### `fork()`
 
 Creates a process. The created process is a "klon" of the parent process, its address space is a replica of the parent process' address space. The only difference is the value returned by `fork()`: 0 to the child process and the child's process and the child's pid to the parent process.
 
-### Tasks performed by `fork()`
+#### Tasks performed by `fork()`
 
 1. Allocate swap space
 2. Assign *pid* and allocate *proc* strucutre
@@ -350,18 +337,23 @@ There are two optimizations:
     - Child process *borrows* parent process' space address until a call to `exec()` or `exit()` is made. At this moment the parent process is awaken and returned its address space
     - Nothing gets copied
 
-## `exec()` 
+### `exec()` 
 
-(`execl()`, `execv()`, `execle()`, `execve()`, `execlp()`, `execvp()`) Makes an already created process execute a program: it **replaces the calling process address space** (code, data, stack...) with that of the program to be executed. **It does not create a new process**.
+Makes an already created process execute a program: it **replaces the calling process address space** (code, data, stack...) with that of the program to be executed. **It does not create a new process**.
 
 - An already created process executes a program; its address space is replaced by that one of the program to be executed
+    
     - If the program was created by `vfork()`, `exec()` returns the address space to the parent process
+    
     - If the program was created by `fork()`, `exec()` releases th address space
+
 - A new address space is created and loaded with the new programs
+
 - When `exec()` ends, execution starts and the new program's first instruction
+
 - If the program to be executed has the adequate *mode*, `exec()`changes the efective and saved user and/or group credentials of the process calling `exec()`to the ones of the executable file
 
-### Tasks performed by `exec()`
+#### Tasks performed by `exec()`
 
 1. Get executable file from path
 2. Check for execute access
@@ -375,11 +367,11 @@ There are two optimizations:
 10. Restore signal handlers to de default action
 11. Initialize hardware context, all registers to 0, except Program Counter, to entry point of program
 
-## `exit()`
+### `exit()`
 
 Ends a process.
 
-### Tasks performed by `exit()`
+#### Tasks performed by `exit()`
 
 1. Deactivate all signals
 2. Close all process's open files
@@ -392,7 +384,7 @@ Ends a process.
 9. If parent is waiting for child process then awake parent process
 10. Call *switch* to initiate context switch
 
-## Waiting for a child to end
+### Waiting for a child to end
 
 If a process needs to know how a child process has terminated, it can use one of the `wait()` system calls.
 
@@ -442,6 +434,8 @@ In every system the sheduler has to provide
 - **Fairness**: every process has to get a fair share of the CPU
 - **Policy**: meet a certain criteria previously stablished
 - **Balance**: different parts of the system share similar workloads
+
+[Introduction to CPU scheduling](https://www.youtube.com/watch?v=EWkQl0n0w5M&ab_channel=NesoAcademy)
 
 ### Scheduling Evaluation
 
@@ -512,6 +506,8 @@ Cons:
 
 - This algorithm produces the **best possible** results (unless the processes appear at different times)
 
+[Non preemptive FCFS, SJF, priority algorithm practice](https://www.youtube.com/watch?v=NBaB98yEW3s&list=PLpmdKxwIqUztepjWH_T9aNz5irE2wnTGm&index=3&ab_channel=cpuscheduling)
+
 #### Preemptive algorithms
 
 ##### Preemptive: priorities
@@ -525,6 +521,8 @@ Cons:
 - Every time new jobs appear ready, their CPU bursts are compared with the remaining time of the one in CPU
 
 - If one of the new jobs has a CPU burts shorter than the remaining time of the one in CPU, the new job gets the CPU
+
+[Shortest remaining time first (SRTF)](https://www.youtube.com/watch?v=wx0uNkMI7Lk&ab_channel=DaphneSplyntr)
 
 ##### Round-Robin (RR)
 
@@ -544,6 +542,8 @@ Advantages:
 
 Drawback:
 - Finding the right *q* value
+
+[Round Robin Algorithm tutorial](https://www.youtube.com/watch?v=aWlQYllBZDs&ab_channel=ouchouchbaby)
 
 ##### Multilevel Queues
 
@@ -565,7 +565,7 @@ On a real system we distiguish between two kinds of events, periodical and not p
 
 ___
 
-**Schedudable real time system**: we define a real time system with m streams to me shedulable if it satisfies $$\sum_{i=1}^{m} C~i~ / P~i~$$
+**Schedudable real time system**: we define a real time system with m streams to be shedulable if it satisfies $$\sum_{i=1}^{m} C~i~ / P~i~ \leq 1$$
 
 P~i~ = period at which the event occurs
 
@@ -574,7 +574,7 @@ C~i~ = CPU time needed to process the event
 ___
 
 
-### Thread Sheculing
+### Thread Scheduling
 
 **A threat can be defined as the basic unit of CPU usage.**
 
