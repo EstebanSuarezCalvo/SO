@@ -766,7 +766,95 @@ It returns the *niceness* minus 20. *niceness* is a number between 0 and 40.
 
 They change the same scheduling parameters as the `nice()` system call.
 
-Better interface to priority than `nice()`, as a process, with the right credentials, can check and/or modify other processes' priorities
+Better interface to priority than `nice()`, as a process, with the right credentials, can check and/or modify other processes' priorities.
 
 ## Unix Processes: Executing in kernel mode
 
+There are 3 events that change the execution into kernel mode:
+
+- **Devide interrupt**: An external device needs to comunicate with the O.S.
+
+- **Excepction**: division by 0, infalid addressing...
+
+- **System call**: the process in CPU explicitilly asks the O.S. for something
+
+In any of these cases, the O.S. kernel:
+
+- Saves the process context in its kernel stack
+
+- Executes the funcion corresponding to the event it is dealing with
+
+- When the routine is completed, restores the process to its previous state
+
+### Executing in kernel mode: interrupt
+
+An interrupt can happen at any time, even if the O.S. is already dealing with another interrupt.
+
+Each interrupt is assigned an Interrupt Priority Level (IPL), it goes from 0 to 7 in traditional unix systems and from 0 to 31 in BSD.
+
+When an interrupt occurs its *IPL* is compared with the current *IPL*. If it is higher the corresponding handler is invoked, if not, execution of its handler is postponed until *IPL* drops enough.
+
+All user code and most kernel code is running at *IPL* minimum.
+
+### Executing in kernel mode: resources
+
+A process running in kernel mode cannot be preempted ultil it returns to user mode, waits or ends.
+
+As it cannot be preempted it can manipulate kernel data without risking to create inconsistences.
+
+When a process using a resource goes to sleep it must mark the resource as busy: before using a resource a process must check wheter it is busy, if it is, it marks the resource as *wanted* and calls `sleep()`.
+
+When a resource is released, it is marked as *non-busy* and, if it is also marked as *wanted* ALL processes that are waiting for it to be marked as non busy are waken up.
+
+An awaken process may not be the first to obtain the CPU, so the first thing it has to do is to re-check if the resource is in fact avaliable
+
+## Unix processes: Signals
+
+Kernel uses signals to notify processes or asynchronous events. For examle, when ctrl + C is pressed, the kernel sends SIGINT.
+
+User processes can send each other signals using the `kill()` system call.
+
+Processes respond to signals when then return to user mode.
+
+Upon receiving a signal, the kernel sets a bit in the correspondent member of the *proc* structure:
+
+### System V R2 non reliable signals
+
+There are 15 avaliable signals.
+
+In the process *u_area* there is an array, indexed by signal number, with the signal handlers for each signal
+
+Sending the signal is setting the corresponding bit in a member of the *proc* structure.
+
+When the process is about to return to user mode, if there is some signal pending for this process, the kernel clears that bit; if the signal is ignored, nothing is done, but if there is a handler installed, the kernel does the following:
+
+- Creates a context layer in the user stack
+
+- Restores the signal to its default action
+
+- Sets PC to the addres of the handler, so the first thing to execute upon returning to user mode, is the signal handler
+
+### System V R3 reliable signals
+
+System V R3 introduces reliable signals:
+
+- Permanent handlers
+
+- The handler for a signal runs with that signal masked
+
+- Ability to mask and unmask signals
+
+- Information on signals received, masked or ignored is now in the *proc* structure
+
+### Signals in BSD
+
+BSD allows to mask signals in groups. Also, if a system call is interrupted by a signal, it gets restarted automatically.
+
+## Unix processes: Interprocess Communication
+
+The main machanisms to intercommunicate processes in unix are:
+
+- *Pipes*
+- Shared memory
+- Semaphores
+- Message queues
