@@ -5,11 +5,15 @@
 A process is an abstraction that refers to each execution program. **Notice that a process has not got to be always executing, a process life cycle has several stages, execution is one of them**.
 
 We can think of a process as:
+
 - Each instance of an executing programm
+
 - The entity the O.S. creates to execute a program
 
 A process consists of:
+
 - Adress space: the set of adresses the process may reference
+
 - Control point: next instruction to be executed
 
 [Process management (Processes and Threads)](https://www.youtube.com/watch?v=OrM7nZcxXZU&list=PLBlnK6fEyqRgKl0MbI6kbI5ffNt7BF8Fn&index=2&ab_channel=NesoAcademy)
@@ -17,8 +21,11 @@ A process consists of:
 ### Regions
 
 In its simplest form, a process adress space has three regions
+
 - **Code:** code of all functions in the program that the process is running
+
 - **Data:** global variables of the program. Dynamically assigned memory (heap) is usually a part of this region
+
 - **Stack:** Used for parameter passing and to store the return address once a function is called. It is also used by the function being called to store its local variables.
 
 ### Multitasking
@@ -40,10 +47,15 @@ The UNIX kernel is the only program to run directly on the system hardware. User
 ### Kernel mode and user mode
 
 Operating systems need more than a running mode to operate:
+
 - **User mode:** user code runs in this mode
+
 - **Kernel mode:** kernel runs in this mode
+
     - **System call:** A user process explicity requests some service from the kernel via the system call interface
+
     - **Exceptions:** Exectional situations (division by 0, addressing errors...) cause hardware traps that require kernel intervention
+
     - **Interrupts:** Devices use interrupts to notify the kernel of certain events (i/o completion, change of the state of a device...)
 
 Some processes or instructions can only be executed in kernel mode.
@@ -53,7 +65,9 @@ Some processes or instructions can only be executed in kernel mode.
 ### Threads and processes
 
 In a traditional Unix system a process is defined by:
+
 - **Adress space:** Set of memory adresses the process can reference
+
 - **Control point:** Indicates which is the next instruction to execute
 
 In a modern Unix system a process can have several control points (threads).
@@ -63,29 +77,41 @@ In a modern Unix system a process can have several control points (threads).
 Processes use virtual adresses. A part of their virtual address space corresponds to the kernel code and data. It is called system space or kernel space and it can only be reached when in kernel mode.
 
 The unix kernel is a C program, and as such it has:
+
 - **Kernel Code:** what is run when the system is executing in kernel mode: system calls code, interrupt and exception handlers
+
 - **Kernel Data:** global variables of the kernel, accesible for all the processes in the system (process table, inode table...)
+
 - **Kernel Stack:** part of memory used as stack when executing in kernel mode: parameter passing inside the kernel, local variables of kernel functions...
 
 ### Reentrant kernel
 
 Unix kernel is reentrant:
+
 - Several processes can be running simoultaneously several kernel functions
+
 - Several processes can be running simoultaneously the same kernel function
 
 For the kernel to be reentrant:
+
 - **Kernel Code** must be read only
+
 - **Kernel Data** must be protected from concurrent acces
+
 - Each process has its own **kernel stack**
 
 #### Kernel data protection
 
 Traditional approach (non preemptible kernel)
+
 - A process running in kernel mode can not be preempted, it only leaves the CPU if it ends, blocks or returns to user mode
+
 - Only certain kernel data structures need to be protected. Protecting them is simple, just a flag in use/not in use
 
 Modern approach (preemptible kernel)
+
 - A process running in kernel mode can be preempted if a higher priority process apears ready
+
 - All kernel data structures must be protected by more sophisticated means (like semaphores)
 
 More complex mechanisms are needed in miltiprocessor systems.
@@ -94,8 +120,11 @@ More complex mechanisms are needed in miltiprocessor systems.
 
 In order to manage processes, the O.S. needs:
 - To asign memory for the program to be loaded.
+
 - As several proceses can run the same program, the O.S. has to identify them (*Process Descriptor* and *Process Identifier*)
+
 - When the process is not being executed, the O.S. needs to keep execution information: registers, memory, resources.
+
 - The O.S. needs to know the list of processes in the system and the state in which each of them is. Usually, it uses lists of Process Descriptors, one for each state or even one for each i/o device.
 
 ### System Control Block
@@ -107,14 +136,21 @@ In order to manage processes, the O.S. needs:
 **A *Process Control Block (PCB)* is a data structure used by the O.S. to store all the information about a process.**
 
 - The O.S. has a table of processes where it keeps information of each process in the system.
+
 - Each entry in this table has information on ONE PROCESS
+
 - The Process Control Block keeps the data relevant to one process that the O.S. uses to manage it (PCB)
 
 It usually includes:
+
 - Identification
+
 - Scheduling
+
 - References to the asigned memory regions
+
 - Assigned resources
+
 - Inter-process comunication information
 
 [Process Control Block](https://www.youtube.com/watch?v=4s2MKuVYKV8&ab_channel=NesoAcademy)
@@ -160,31 +196,50 @@ The kernel keeps an array of *proc* structures called *process table*. It is in 
 ### Credentials
 
 Credentials of a process allow the system to determine what privileges a process has relating to fields and to other process in the system
+
 - Each user in the system is identified by a number: *user id* or *uid*
+
 - Each group in the system is identified by a number: *group id* or *gid*
+
 - There is a special user in the system: *root (uid=0)*
+
     - Can access all files
+
     - Can send signals to every process
+
     - Can make privileged system calls
 
+
 Access to a file is conditioned by:
+
 - Owner: (file *uid*)
+
 - Group: (file *gid*)
+
 - Permissions: (file *mode*)
 
 A process has its **credentials**, which specify what files it can acces (and how) and what processes it can send signals to (and from what processes it can get signals sent)
+
 - User credential (process *uid*)
+
 - Group credential (process *gid*)
+
 - When a process tries to acess a file, the following procedure applies
+
     - If the process uid matches the file uid: owner permissions apply
+
     - If the process gid matches the file gid: group permissions apply
+
     - Otherwise *rest of the world permissions apply
 
 #### Change of credentials
 
 There are only **three** system calls able to change a process credentials:
+
 - `setuid()` changes the *uid* of the calling process
+
 - `setgid()` changes the *gid* of the calling process
+
 - `exec()` the *exec* system calls can change the credentials of the calling process if the file to be executed has the adecuate permissions
 
 ### Environment variables
@@ -194,8 +249,11 @@ An environment variable is a variable whose value is set outside the program.
 These variables are strings of characters placed at the bottom of the user stack.
 
 There are several ways to acces them:
+
 - Third argument to `main()`: NULL terminated array of the environment variables
+
 - `extern char ** environ`: NULL terminated array of the environment variables
+
 - Library functions: `putenv()`, `getenv()`, `setenv()`, `unsetenv()`
 
 ## Process life cycle
@@ -217,22 +275,32 @@ On modern systems, some part of the secondary memory is used to swap out PIECES 
 ### Process states
 
 - CPU / running / executing
+
 - ready / ready to run / runnable
+
 - blocked / asleep / waiting
+
 - swapped out / suspended (a proccess in this state can either be runnable or blocked)
 
 [Process State](https://www.youtube.com/watch?v=jZ_6PXoaoxo&t=3s&ab_channel=NesoAcademy)
 
 ### State transitions
 - Entering the running state: the first in the ready to run queue is scheduled to run
+
 - Entering the ready to run state:
+
     - **A new process has been created and it enters the runnable queue**
+
     - **From CPU:** another process is scheduled to run via a context switch. We say the process has been preempted
+
     - **From blocked:** the event the process was waiting for (some i/o operation or whatever) has ocurred. We call this transition *unblock* or *wake up*
+
     - **From ready to run:** the O.S. decides to bring it to primary memory. This transition is called swap in
 
 - Entering the blocked state:
+
     - **From CPU:** the process makes some system call (asks for some i/o to be done, ...) that cannot be completed at the time so it blocks
+
     - **From blocked:** the O.S. swaps in a blocked process (not every O.S. accepts this transition)
 
 - The *blocked* and *ready* states can be entered when the O.S. decides to swap out a process (ready or blocked) to free some primary memory
@@ -240,10 +308,15 @@ On modern systems, some part of the secondary memory is used to swap out PIECES 
 ### Process creation
 
 When a process makes a create process system call, the O.S. must:
+
 1. Assign an Identifier to the new process
+
 2. Create and initialize its PCB (Process Control Block)
+
 3. Update the SCB (System Control Block) to include the new process
+
 4. Assign memory to it and, if needed, load the program the new process is going to execute
+
 5. Put it into the ready to run queue
 
 The only way to create a new process is through a system call.
@@ -255,14 +328,19 @@ When a process is terminated, its PCB is deleted and the O.S. reclaims all the r
 If the process has some children processes: it may wait for them to end, terminate or leave them be.
 
 There are 2 ways of termination:
+
 - **Normal termination:** the process calls voluntarily the terminate process system call
+
 - **Abnormal termination:** not provided for in the process code. The process is *forced* to make the *terminate process system call*
 
 ## Process life cycle in UNIX
 
 A process has a specific life span
+
 - It is created by the `fork()` (or `vfork()`) system call
+
 - Ends with the `exit()` system call
+
 - Can execute a program with one of the `exec()` system calls
 
 Every process has a parent process.
@@ -276,18 +354,29 @@ When a process ends its children processes are inherited by *init*.
 ### The states of a process
 
 The process states in System V are:
+
 - **idle:** the process is being created but it is not yet ready to run
+
 - **Runnable / ready to run**
+
 - **Blocked / asleep:** in this state, as with the *runnable* state, the process can be in main memory or in the swap area (*swapped*)
+
 - **User running**
+
 - **Kernel running**
+
 - **Zombie:** the process has terminated but the parent process has not yet performed one of the wait system calls on it: its *proc structure* has not been emptied so, for the system, the process still exists
 
 Notice:
+
 - The execution of a process starts in kernel mode.
+
 - Transition to *blocked* is from kernel mode running.
+
 - Transitions to and from runnable are from kernel mode running
+
 - Execution ends in kernel mode
+
 - When a process ends it goes into *zombie* state until its parent process performs one of the *wait* system calls on it
 
 ### `fork()`
@@ -297,23 +386,38 @@ Creates a process. The created process is a "klon" of the parent process, its ad
 #### Tasks performed by `fork()`
 
 1. Allocate swap space
+
 2. Assign *pid* and allocate *proc* strucutre
+
 3. Initialize *proc* structure
+
 4. Assign addres translation maps for child processes
+
 5. Allocate child process's *u_area* and copy data from parent process
+
 6. Update fields in *u_area*
+
 7. Add child process to set of processes sharing code
+
 8. Duplicate data and stack segments from parent process and update tables
+
 9. Initialize hardware context
+
 10. Change state of child process to *ready to run*
+
 11. return 0 to child process
+
 12. return child's *pid* to parent process
 
 #### Optimizing `fork()`
 What we need to know in order to optimize `fork()`
+
 - Among the tasks performed by `fork()`, duplicate data and stack segments from parent process and update tables implies:
+
     - Allocating memory for child's process data and stack
+
     - Copy parent process's data and stack
+
 - It often happens that a process just created by `fork()` executes another program
     ~~~
     if ((pid = fork()) == 0) {
@@ -323,18 +427,29 @@ What we need to know in order to optimize `fork()`
         }
     }
     ~~~
+
 - The exec() calls discard current address space and allocate a new one
+
 - In this case, we have allocated memory, copied data on it and then ended up discarding all that memory
 
 There are two optimizations:
+
 - **Copy on write**
+
     - Data and stack are not copied: they are shared between parent and child processes
+
     - Data and stack are marked read only
+
     - When an attempt is made to modify any of them, as they are marked read only, an exception is produced
+
     - The exception handler copies ONLY THE PAGE that is being modified. Only modified pages of data and stack are copied
+
 - **`vfork()` system call**
+
     - Used only if a call to `exec()` is to be made in a short time
+
     - Child process *borrows* parent process' space address until a call to `exec()` or `exit()` is made. At this moment the parent process is awaken and returned its address space
+
     - Nothing gets copied
 
 ### `exec()` 
@@ -356,15 +471,25 @@ Makes an already created process execute a program: it **replaces the calling pr
 #### Tasks performed by `exec()`
 
 1. Get executable file from path
+
 2. Check for execute access
+
 3. Inspect file header and check if it is a valid executable
+
 4. If the bits *setuid* and/or *setgid* are set, change the efective (and saved) *uid* or *gid* of the process
+
 5. Save environment and arguments to `exec()` in kernel space (user space is being discarded)
+
 6. Allocate new swap space (data and stack)
+
 7. Release address space (if the process was created by `vfork()` return it to the parent process)
+
 8. Allocate a new address space. If the code is already in use, share it, if not, load it from the executable file
+
 9. Copy environment variables and arguments to `exec()` into new user stack
+
 10. Restore signal handlers to de default action
+
 11. Initialize hardware context, all registers to 0, except Program Counter, to entry point of program
 
 ### `exit()`
@@ -374,14 +499,23 @@ Ends a process.
 #### Tasks performed by `exit()`
 
 1. Deactivate all signals
+
 2. Close all process's open files
+
 3. Free from Vnode Table vnodes of the code file, control terminal, root directory and current working directory
+
 4. Save resource usage statistics and *exit state* into *proc* structure
+
 5. Change process state to SZOMB and place *proc* structure into *zombie* list
+
 6. Make *init* inherit all process's children processes
+
 7. Deallocate address space, *u_area*, and swap space...
+
 8. Send SIGCHLD to parent process
+
 9. If parent is waiting for child process then awake parent process
+
 10. Call *switch* to initiate context switch
 
 ### Waiting for a child to end
@@ -389,7 +523,9 @@ Ends a process.
 If a process needs to know how a child process has terminated, it can use one of the `wait()` system calls.
 
 -`wait()` checks whether a child process has ended
+
     - If it has, `wait()` returns inmediately
+
     - If it has not, the process calling `wait()` waits until any of its children processes has ended
 
 - The exit value that the child process passed to `exit()` is transfered to the variable `wait()`uses as a parameter.
@@ -399,9 +535,13 @@ If a process needs to know how a child process has terminated, it can use one of
 - Returns *pid* of the child processes's *proc* structure
 
 - `waitpid()`, `waitid()`, `wait3()` and `wait4()` do atmit options:
+
     - **WNOHANG** Does not wait for the child process to end
+
     - **WUNTRACED** In addition to reporting ending processes, stopping of a child process is also reported
+
     - **WCONTINUED** In addition to reporting ending processes, continuing of a stopped child process is also reported
+
     - **WNOWAIT** Does not deallocate child process's *proc* structure
 
 - *proc* structure is not deallocated until one of the `wait()` system calls is used
@@ -417,22 +557,33 @@ In a multiprogrammed O.S. several processes and/or threads compete for CPU.
 The scheduler is the part of the O.S. which decides which process (among the runnable processes) obtains the CPU.
 
 There are two kinds of scheduling algorithms:
+
 - **non-preemptive algorithms**: The currently running process stays in the CPU until it ends its CPU burst
+
 - **preemptive algorithms**: The scheduler can move out from the CPU the currently running process before it ends its CPU burst (preemption)
 
 Types of scheduler:
+
 - **short term scheduler**: decides which process enters the CPU among the runnable processes
+
 - **medium term scheduler**: in *swapping* systems: decides which swapped out processes will be swapped in
+
 - **long term scheduler**: in *batch systems*: decides which process(es) in the *spool* device will be loaded into main memory. It controls the degree of multiprogramming
 
 The goals of a scheduler will vary depending on the environment it is used:
+
 - **Batch environments**: It's main goal is to be efficient and have great throughput
+
 - **Interactive environments**: Its main goal is to give at least some CPU to all processes in a timely manner
+
 - **Real time environments**: Some processes in the system have very specific time constrains that need to be met. Typically priority based scheduling is used and those processes with special needs are assigned the greatest priorities in the system
 
 In every system the sheduler has to provide
+
 - **Fairness**: every process has to get a fair share of the CPU
+
 - **Policy**: meet a certain criteria previously stablished
+
 - **Balance**: different parts of the system share similar workloads
 
 [Introduction to CPU scheduling](https://www.youtube.com/watch?v=EWkQl0n0w5M&ab_channel=NesoAcademy)
@@ -444,26 +595,39 @@ There are 3 methods to evaluate how an algorithm behaves on a given system
 - Analytical methods (both deterministic and non deterministic)
 
     - Deterministic Models
+
         - We take a sample workload and evaluate how the system behaves. Important: the workload must be representative
+
         - We use some of the time measurements to assess the algorithm's performance
+
         - *Pros*: simplicity
+
         - *Cons*: misleading results if the workload is not correctly selected
 
     - Non deterministic Models
+
         - On many systems, the arrival time and length of the job cannot be predicted, so it is not possible to use a deterministic mode
+
         - We use probability distribution functions to model the CPU bursts and arrival times for the jobs in the system
+
         - With those two distributions we can estimate the mean values of throughput, watting time...
 
 - Simulation
+
     - Another option is to simulate the system behaviour
+
     - Data for processes are either ramdomly generated or sampled from a real system
+    
     - This method gives a real glimpse on how an scheduling algorithm actually performs
+    
     - High computing cost
 
 - Implantation
 
     - The algorithm is implemented on a running system to be evaluated
+  
     - Data obtained correspondt o actual processes in a real system
+  
     - The mere implantation of some specific algorithm in a running system can condition user behaviour so that the results thus obtained may be not as *authentic* as they should
 
 ### Scheduling algorithms
@@ -475,12 +639,17 @@ There are 3 methods to evaluate how an algorithm behaves on a given system
 *Priority is a numeric value used to decide whether a process gets to use CPU before other processes.*
 
 Depending on how they are asigned, priorities can be:
+
 - **Internal**: Assigned by the O.S. from information on the process
+
 - **External**: Assigned by the users or the System Administration
+
 - **Mixed**: Combination of internal and external
 
 Priorities can also be considered:
+
 - **Static**: the priority of a process does not change (unless the system administrator or some user explicitly changes it)
+
 - **Dynamic**: the system recalculates the processes' priorities
 
 In non preentive priority scheduling, when the process in CPU voluntarily relenquishes CPU, the scheduler selects the highest priority process among all ready to run processes.
@@ -490,10 +659,13 @@ The main drawback is that a process with low priority waits forever. This proble
 ##### First-Come-First-Served (FCFS)
 
 Pros:
+
 - Easy to Implement. A FIFO queue is enough
+
 - Fair
 
 Cons:
+
 - Drawback: risk of low throughput; "convoy" effect
 
 ##### Shortest Job First (SJF)
@@ -537,10 +709,13 @@ Cons:
 - A timer takes care of waking up the scheduler
 
 Advantages:
+
 - Easy to implement
+
 - Fairness
 
 Drawback:
+
 - Finding the right *q* value
 
 [Round Robin Algorithm tutorial](https://www.youtube.com/watch?v=aWlQYllBZDs&ab_channel=ouchouchbaby)
@@ -596,7 +771,7 @@ Advantages:
 
 We can think of scheduling at two levels: processes and threads. A process scheduler chooses a process, then a thread scheduler chooses the thread.
 
-There is no preemption among threads. If a thread uses up all thre *quantum* another process is selected. When it returns to CPU the same thread will continue.
+There is no preemption among threads. If a thread uses up all the *quantum* another process is selected. When it returns to CPU the same thread will continue.
 
 If the thread does not use all the *quantum*, the thread scheduler can select another thread inside the same process.
 
@@ -646,7 +821,7 @@ The *proc* structure has the following members related to priority recalculation
 
 When the process runs in user mode  *p_pri* is identical to *p_usrpri*.
 
-After a process was blocked, when it is awaken, *p_pri* is assigned a value depending on the reason the process was blocked. THis is called a **kernel priority** or **sleep priority**:
+After a process was blocked, when it is awaken, *p_pri* is assigned a value depending on the reason the process was blocked. This is called a **kernel priority** or **sleep priority**:
 
 - This *kernel priorities* are smaller numbers thus higher priority than user mode priorities *p_usrpri*
 
@@ -746,11 +921,11 @@ CPU scheduling is done for time intervals called *epochs*. For each *epoch* ever
 
 The system has a *runqueue* for each processor and each process can only be in one *runqueue* at a time.
 
-Each *runqueue* has 2 structures: the *active array* and the *expired array*. Each array has a process queue for each priority level
+Each *runqueue* has 2 structures: the *active array* and the *expired array*. Each array has a process queue for each priority level.
 
-When a process uses up all of its *slice*, its *slice* gets recalculated and the process is moved to the *expired array*. When all processes have used up all their *slices* the *expired array* becomes *active array*
+When a process uses up all of its *slice*, its *slice* gets recalculated and the process is moved to the *expired array*. When all processes have used up all their *slices* the *expired array* becomes *active array*.
 
-An array of bits indicates the non empty queues
+An array of bits indicates the non empty queues.
 
 ### System calls for priority management
 
@@ -772,7 +947,7 @@ Better interface to priority than `nice()`, as a process, with the right credent
 
 There are 3 events that change the execution into kernel mode:
 
-- **Devide interrupt**: An external device needs to comunicate with the O.S.
+- **Device interrupt**: An external device needs to comunicate with the O.S.
 
 - **Excepction**: division by 0, infalid addressing...
 
@@ -806,7 +981,7 @@ When a process using a resource goes to sleep it must mark the resource as busy:
 
 When a resource is released, it is marked as *non-busy* and, if it is also marked as *wanted* ALL processes that are waiting for it to be marked as non busy are waken up.
 
-An awaken process may not be the first to obtain the CPU, so the first thing it has to do is to re-check if the resource is in fact avaliable
+An awaken process may not be the first to obtain the CPU, so the first thing it has to do is to re-check if the resource is in fact avaliable.
 
 ## Unix processes: Signals
 
